@@ -39,7 +39,7 @@ logger.addHandler(stream_handler)
 
 
 class HttpCodeIsNot200(Exception):
-    """Неверный HTTP код."""
+    """Неверный HTTP  код."""
 
     pass
 
