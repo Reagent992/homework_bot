@@ -50,14 +50,17 @@ def check_tokens() -> bool:
     return all([PRACTICUM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_TOKEN])
 
 
-def send_message(bot: telegram.Bot, message: str) -> None:
+def send_message(bot: telegram.Bot, message: str) -> bool:
     """Отправляет сообщение в Telegram чат."""
     try:
         logger.debug('Запущена отправка сообщения в Telegram')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logger.info(f'Сообщение {message} отправлено на №{TELEGRAM_CHAT_ID}')
+        return True
     except telegram.error.TelegramError as e:
-        logger.error(f'Неудачная отправка сообщения: {message} ошибка {e}')
+        logger.error(f'Неудачная отправка сообщения: {message} ошибка {e},'
+                     f' попробуем еще через 10 минут.')
+        return False
 
 
 def get_api_answer(timestamp: int) -> dict:
@@ -80,12 +83,13 @@ def check_response(response: dict):
     """Проверяет ответ API. Возвращает домашку если она есть."""
     logger.debug('Проверка ответа API')
     if not isinstance(response, dict):
-        msg = 'Ответ API не является словарем'
-        raise TypeError(msg)
-    homeworks = response.get('homeworks')
+        raise TypeError('Ответ API не является словарем')
     if not response.get('current_date'):
         raise KeyError('В ответе API нехватает ключа current_date')
+    if not isinstance(response['current_date'], int):
+        raise TypeError('current_date не является int')
     logger.debug('Извлечение домашки из ответа API')
+    homeworks = response.get('homeworks')
     if homeworks is not None and isinstance(homeworks, list):
         if homeworks:
             logger.debug('Успешная проверка ответа API, домашка есть =)')
@@ -145,12 +149,12 @@ def main():
                 message = parse_status(homework)
                 if message != last_homework_status:
                     logger.debug('Новая домашка, отправляем сообщение')
-                    # Сохраняем последний статус домашки
-                    last_homework_status = homework['status']
-                    send_message(bot, message)
-                else:
-                    logger.info('Старая домашка, идем спать.')
-            logger.info('Нету домашки, идем спать.')
+                    if send_message(bot, message):
+                        # Сохраняем последний отправленный статус домашки
+                        last_homework_status = homework['status']
+                    else:
+                        logger.debug('Неудачный вызов send_message')
+            logger.info('Идем спать.')
 
         except Exception as error:
             logger.error(error)
