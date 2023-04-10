@@ -82,8 +82,10 @@ def check_response(response: dict):
     if not isinstance(response, dict):
         msg = 'Ответ API не является словарем'
         raise TypeError(msg)
-    logger.debug('Извлечение домашки из ответа API')
     homeworks = response.get('homeworks')
+    if not response.get('current_date'):
+        raise KeyError('В ответе API нехватает ключа current_date')
+    logger.debug('Извлечение домашки из ответа API')
     if homeworks is not None and isinstance(homeworks, list):
         if homeworks:
             logger.debug('Успешная проверка ответа API, домашка есть =)')
