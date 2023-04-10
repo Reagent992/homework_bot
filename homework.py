@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 import requests
 import telegram
 from dotenv import load_dotenv
+from exepctions import HttpCodeIsNot200
 
 load_dotenv()
 
@@ -36,12 +37,6 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(formatter)
 logger.addHandler(log_files_handler)
 logger.addHandler(stream_handler)
-
-
-class HttpCodeIsNot200(Exception):
-    """Неверный HTTP  код."""
-
-    pass
 
 
 def check_tokens() -> bool:
