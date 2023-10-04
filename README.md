@@ -1,2 +1,2 @@
 # homework_bot
-python telegram bot
+Telegram бот для проверки домашки в API Яндекс практикум.
